@@ -5,6 +5,7 @@
       <video id="output-video" controls ></video><br/>
       <input type="file" id="uploader">
       <p id="message"></p>
+      <p>当前进度: {{percentage}}%</p>
     </div>
   </div>
 </template>
@@ -16,11 +17,16 @@ export default {
   name: 'ffmpeg',
   props: {
   },
+  data() {
+    return {
+      percentage: 0,
+    };
+  },
   mounted() {
     const { createFFmpeg, fetchFile } = FFmpeg;
     const ffmpeg = createFFmpeg({
-      // corePath: 'ffmpeg-core.js',
-      corePath: 'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js',
+      corePath: 'ffmpeg-core.js',
+      // corePath: 'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js',
       log: true,
     });
     const transcode = async ({ target: { files } }) => {
@@ -28,6 +34,13 @@ export default {
       // const { name } = files[0];
       message.innerHTML = 'Loading ffmpeg-core.js';
       await ffmpeg.load();
+      ffmpeg.setProgress(({ ratio }) => {
+        console.log(ratio)
+        this.percentage = Math.floor(ratio * 100)
+        /*
+         * ratio is a float number between 0 to 1.
+         */
+      });
       ffmpeg.FS('writeFile', 'encodeURI(name)', await fetchFile(files[0]));
       message.innerHTML = 'Start transcoding';
       await ffmpeg.run('-i', 'encodeURI(name)', 'output.mp4');
