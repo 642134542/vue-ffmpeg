@@ -6,7 +6,6 @@
       <input type="file" id="uploader">
       <p id="message"></p>
     </div>
-
   </div>
 </template>
 
@@ -20,17 +19,18 @@ export default {
   mounted() {
     const { createFFmpeg, fetchFile } = FFmpeg;
     const ffmpeg = createFFmpeg({
-      corePath: 'ffmpeg-core.js',
+      // corePath: 'ffmpeg-core.js',
+      corePath: 'https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js',
       log: true,
     });
     const transcode = async ({ target: { files } }) => {
       const message = document.getElementById('message');
-      const { name } = files[0];
+      // const { name } = files[0];
       message.innerHTML = 'Loading ffmpeg-core.js';
       await ffmpeg.load();
-      ffmpeg.FS('writeFile', encodeURI(name), await fetchFile(files[0]));
+      ffmpeg.FS('writeFile', 'encodeURI(name)', await fetchFile(files[0]));
       message.innerHTML = 'Start transcoding';
-      await ffmpeg.run('-i', encodeURI(name), 'output.mp4');
+      await ffmpeg.run('-i', 'encodeURI(name)', 'output.mp4');
       message.innerHTML = 'Complete transcoding';
       const data = ffmpeg.FS('readFile', 'output.mp4');
 
