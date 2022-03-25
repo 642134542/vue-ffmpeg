@@ -1,40 +1,44 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+    <div>
+      <h3>Upload a video to transcode to mp4 (x264) and play!</h3>
+      <video id="output-video" controls ></video><br/>
+      <input type="file" id="uploader">
+      <p id="message"></p>
+    </div>
+
   </div>
 </template>
 
 <script>
+import FFmpeg from '@ffmpeg/ffmpeg';
+
 export default {
-  name: 'HelloWorld',
+  name: 'ffmpeg',
   props: {
-    msg: String
+  },
+  mounted() {
+    const { createFFmpeg, fetchFile } = FFmpeg;
+    const ffmpeg = createFFmpeg({
+      corePath: 'ffmpeg-core.js',
+      log: true,
+    });
+    const transcode = async ({ target: { files } }) => {
+      const message = document.getElementById('message');
+      const { name } = files[0];
+      message.innerHTML = 'Loading ffmpeg-core.js';
+      await ffmpeg.load();
+      ffmpeg.FS('writeFile', encodeURI(name), await fetchFile(files[0]));
+      message.innerHTML = 'Start transcoding';
+      await ffmpeg.run('-i', encodeURI(name), 'output.mp4');
+      message.innerHTML = 'Complete transcoding';
+      const data = ffmpeg.FS('readFile', 'output.mp4');
+
+      const video = document.getElementById('output-video');
+      video.src = URL.createObjectURL(new Blob([data.buffer], { type: 'video/mp4' }));
+    }
+    const elm = document.getElementById('uploader');
+    elm.addEventListener('change', transcode);
   }
 }
 </script>
