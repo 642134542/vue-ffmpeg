@@ -1,6 +1,6 @@
 module.exports = {
     // 基本路径
-    publicPath: '/',
+    publicPath: './',
     // 输出文件目录
     outputDir: 'dist',
     assetsDir: 'assets', // 静态资源目录 (js, css, img, fonts)
