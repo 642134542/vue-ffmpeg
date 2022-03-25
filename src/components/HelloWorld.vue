@@ -17,6 +17,11 @@ export default {
   name: 'ffmpeg',
   props: {
   },
+  data() {
+    return {
+      percentage: 0,
+    };
+  },
   mounted() {
     const { createFFmpeg, fetchFile } = FFmpeg;
     const ffmpeg = createFFmpeg({
@@ -28,7 +33,14 @@ export default {
       const { name } = files[0];
       message.innerHTML = 'Loading ffmpeg-core.js';
       await ffmpeg.load();
-      ffmpeg.FS('writeFile', encodeURI(name), await fetchFile(files[0]));
+      ffmpeg.setProgress(({ ratio }) => {
+        console.log(ratio)
+        this.percentage = Math.floor(ratio * 100)
+        /*
+         * ratio is a float number between 0 to 1.
+         */
+      });
+      ffmpeg.FS('writeFile', 'encodeURI(name)', await fetchFile(files[0]));
       message.innerHTML = 'Start transcoding';
       await ffmpeg.run('-i', encodeURI(name), 'output.mp4');
       message.innerHTML = 'Complete transcoding';
